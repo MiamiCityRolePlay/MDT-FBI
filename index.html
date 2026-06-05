@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miami City RP - FBI MDT Avanzado</title>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #030712;
+            color: #f3f4f6;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Formulario Login */
+        .form-container {
+            background: #0b1329;
+            border: 1px solid #1e3a8a;
+            padding: 30px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 400px;
+            margin: auto;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        .form-container h2 {
+            color: #38bdf8;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        /* Contenedor Principal MDT */
+        .mdt-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Topbar */
+        .mdt-topbar {
+            background-color: #060b18;
+            border-bottom: 1px solid #1e293b;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
+        }
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .badge-icon { font-size: 20px; }
+        .server-title { font-weight: 800; color: #fff; font-size: 14px; letter-spacing: 1px; }
+        .divider { color: #334155; }
+        .dept-title { color: #94a3b8; font-size: 12px; font-weight: 600; }
+
+        /* Botón de Servicio */
+        .btn-duty {
+            padding: 6px 15px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        .duty-on { background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: rgba(16, 185, 129, 0.3); }
+        .duty-off { background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.3); }
+
+        /* Perfil de Usuario */
+        .user-profile-wrapper { position: relative; }
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            background: #0f172a;
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: 1px solid #1e293b;
+        }
+        .status-indicator { width: 8px; height: 8px; border-radius: 50%; }
+        .status-indicator.online { background: #10b981; box-shadow: 0 0 8px #10b981; }
+        .username { font-size: 12px; font-weight: 600; color: #e2e8f0; }
+        .rank-tag { font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 3px; border: 1px solid; }
+
+        /* Dropdown Cerrar Sesión */
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 35px;
+            background-color: #0b111e;
+            min-width: 140px;
+            border: 1px solid #1e293b;
+            border-radius: 4px;
+            z-index: 10;
+        }
+        .btn-logout {
+            width: 100%;
+            background: none;
+            border: none;
+            color: #ef4444;
+            padding: 10px;
+            text-align: left;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .btn-logout:hover { background: rgba(239, 68, 68, 0.1); }
+
+        /* Estructura Main */
+        .mdt-main { display: flex; flex: 1; height: calc(100vh - 60px); }
+
+        /* Sidebar Navigation */
+        .mdt-sidebar { width: 240px; background-color: #040814; border-right: 1px solid #1e293b; padding: 15px 10px; }
+        .sidebar-header { font-size: 10px; font-weight: 800; color: #4b5563; padding-left: 10px; margin-bottom: 10px; letter-spacing: 1px; }
+        .menu-item {
+            padding: 12px 15px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #94a3b8;
+            cursor: pointer;
+            margin-bottom: 5px;
+            transition: all 0.2s;
+        }
+        .menu-item:hover { background: #0f172a; color: #fff; }
+        .menu-item.active { background: #1e3a8a; color: #38bdf8; border-left: 3px solid #38bdf8; }
+
+        /* Content Area */
+        .mdt-content { flex: 1; background: #020613; padding: 25px; overflow-y: auto; }
+        .content-header { margin-bottom: 25px; }
+        .content-header h1 { font-size: 24px; font-weight: 700; color: #fff; }
+        .content-header p { font-size: 13px; color: #6b7280; margin-top: 4px; }
+
+        /* Cards Generales */
+        .card { background: #070c19; border: 1px solid #1e293b; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+        .card-full { width: 100%; }
+        .card h3 { font-size: 14px; font-weight: 700; color: #94a3b8; letter-spacing: 0.5px; }
+        .card-hr { border: 0; border-top: 1px solid #1e293b; margin: 12px 0; }
+        .avatar-placeholder { width: 60px; height: 60px; background: #0f172a; border: 1px solid #1e293b; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+
+        /* Form Inputs Comunes */
+        .mdt-input, .mdt-select, .mdt-textarea {
+            width: 100%;
+            background: #040814;
+            border: 1px solid #1e293b;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            outline: none;
+            margin-top: 5px;
+        }
+        .mdt-input:focus, .mdt-select:focus, .mdt-textarea:focus { border-color: #38bdf8; }
+        .input-label { font-size: 10px; font-weight: 800; color: #4b5563; letter-spacing: 0.5px; }
+
+        /* Tablas */
+        .table-ciudadanos { width: 100%; border-collapse: collapse; text-align: left; }
+        .table-ciudadanos th { font-size: 11px; color: #4b5563; font-weight: 800; padding: 10px; border-bottom: 1px solid #1e293b; }
+        .table-ciudadanos td { padding: 12px 10px; font-size: 13px; border-bottom: 1px solid #0f172a; }
+        
+        /* Grid de Permisos Administrativos */
+        .permissions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-top: 10px; }
+        .perm-checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #e2e8f0; cursor: pointer; background: #040814; padding: 8px; border: 1px solid #1e293b; border-radius: 4px; }
+        .perm-checkbox-label input { accent-color: #38bdf8; }
+
+        /* Layout del Módulo de Denuncias */
+        .denuncia-layout-container { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; height: calc(100vh - 180px); }
+        .denuncia-sidebar { display: flex; flex-direction: column; padding: 15px; background: #050a14; }
+        .denuncia-list-scroller { flex: 1; overflow-y: auto; }
+        .denuncia-viewer-panel { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: #040813; }
+        
+        /* Modal del Reporte Formato */
+        .mdt-modal-wrapper { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(2, 4, 10, 0.85); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+        .denuncia-window-form { background: #111827; border: 1px solid #1f2937; width: 100%; max-width: 750px; border-radius: 6px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.7); display: flex; flex-direction: column; gap: 15px; }
+        .denuncia-form-header { border-bottom: 2px solid #1e3a8a; padding-bottom: 8px; font-size: 14px; font-weight: 800; color: #38bdf8; letter-spacing: 1.5px; text-transform: uppercase; }
+        
+        .denuncia-grid-header-fields { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px; }
+        .denuncia-grid-secondary-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .denuncia-grid-footer-blocks { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        
+        .denuncia-box-field { background: #1f2937; border: 1px solid #374151; border-radius: 4px; padding: 10px; display: flex; flex-direction: column; }
+        .denuncia-mini-label { font-size: 9px; font-weight: 800; color: #9ca3af; letter-spacing: 0.5px; margin-bottom: 4px; text-transform: uppercase; }
+        .denuncia-clean-input { background: transparent; border: none; color: #fff; font-size: 13px; outline: none; width: 100%; }
+        .denuncia-static-text { color: #d1d5db; font-size: 13px; font-weight: 600; }
+        .denuncia-textarea-clean { background: transparent; border: none; color: #fff; font-size: 13px; outline: none; width: 100%; resize: none; height: 120px; font-family: inherit; }
+        
+        .footer-block { min-height: 65px; justify-content: space-between; transition: all 0.2s; }
+        .footer-block:hover { border-color: #38bdf8; background: #374151; }
+        .denuncia-placeholder-inner-text { font-size: 11px; color: #9ca3af; font-weight: 700; text-align: center; margin-top: auto; margin-bottom: auto; }
+        
+        .denuncia-item-btn { background: #0b1224; border: 1px solid #1e293b; padding: 12px; border-radius: 4px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; }
+        .denuncia-item-btn:hover { border-color: #38bdf8; background: #0f1934; }
+        .licencia-tag { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
+        .tag-residente { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .tag-buscado { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+    </style>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
+
+        const SUPABASE_URL = "https://syugspcppbzieskmocyq.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable__reGmixfnZZXZJ2bH2dRyQ_TNywh0vo"; 
+        
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const DISCORD_GUILD_ID = "1497062121563750400"; 
+
+        // ROLES INICIALES CON SEBASTIÁN GARCÍA COMO DIRECTOR ADMIN TOTAL
+        const ROLES_CONEXION = {
+            "sebastian garcia": "Director del FBI",
+            "ares": "Director Adjunto",
+            "emanuel": "Jefe de la Policía",
+            "utils": "Soporte Técnico / Programador",
+            "gustabo": "LSPD / Oficial de Patrulla",
+            "jack conway": "Superintendente"
+        };
+
+        let ciudadanoSeleccionado = null;
+        let agenteActual = "";
+        let rangoAgenteActual = "Agente Especial";
+        let enServicio = true;
+
+        let evidenciasTemporales = [];
+        let personasTemporales = [];
+        let agentesTemporales = [];
+        let etiquetaSeleccionada = "Ninguna";
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            const usuarioGuardado = localStorage.getItem('fbi_usuario_discord');
+            if (usuarioGuardado) {
+                agenteActual = usuarioGuardado;
+                rangoAgenteActual = ROLES_CONEXION[usuarioGuardado.toLowerCase()] || "Agente Especial";
+                await verificarEstadoUsuario(usuarioGuardado);
+            } else {
+                mostrarFormularioLogin();
+            }
+        });
+
+        async function verificarEstadoUsuario(usuario) {
+            const { data } = await supabase
+                .from('solicitudes_fbi')
+                .select('estado, creado_en')
+                .eq('usuario_discord', usuario)
+                .order('creado_en', { ascending: false })
+                .limit(1);
+
+            if ((data && data.length > 0 && data[0].estado === 'aceptado') || usuario.toLowerCase() === "sebastian garcia") {
+                const fecha = data && data[0] ? new Date(data[0].creado_en).toLocaleDateString() : "04/06/2026";
+                mostrarPantallaMDT(usuario, fecha);
+                return true;
+            } else {
+                localStorage.removeItem('fbi_usuario_discord');
+                mostrarFormularioLogin();
+            }
+            return false;
+        }
+
+        window.enviarSolicitud = function() {
+            const user = document.getElementById('discordUser').value.trim();
+            if(user) {
+                localStorage.setItem('fbi_usuario_discord', user);
+                agenteActual = user;
+                rangoAgenteActual = ROLES_CONEXION[user.toLowerCase()] || "Agente Especial";
+                verificarEstadoUsuario(user);
+            }
+        }
+
+        function mostrarFormularioLogin() {
+            document.body.style.display = "flex";
+            document.body.style.padding = "20px";
+            document.body.innerHTML = `
+                <div class="form-container">
+                    <h2>TERMINAL FBI</h2>
+                    <p style="font-size:12px; color:#6b7280; margin-bottom:20px;">Introduzca su usuario para verificar credenciales tácticas.</p>
+                    <input type="text" id="discordUser" class="mdt-input" placeholder="Usuario de Discord">
+                    <button onclick="enviarSolicitud()" class="btn-submit">CONECTAR</button>
+                </div>
+            `;
+        }
+
+        function mostrarPantallaMDT(usuario, fecha) {
+            const esDirector = usuario.toLowerCase() === "sebastian garcia";
+            document.body.style.display = "block";
+            document.body.style.padding = "0";
+            document.body.innerHTML = `
+                <div class="mdt-container">
+                    <div class="mdt-topbar">
+                        <div class="logo-section">
+                            <span class="badge-icon">🦅</span>
+                            <span class="server-title">MIAMI CITY ROLEPLAY</span>
+                            <span class="divider">|</span>
+                            <span class="dept-title">CENTRO DE INTELIGENCIA TÁCTICA</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <button id="btn-servicio" class="btn-duty duty-on" onclick="alternarServicio()">EN SERVICIO</button>
+                            <div class="user-profile-wrapper">
+                                <div class="user-profile" onclick="toggleMenuCerrar()">
+                                    <span class="status-indicator online"></span>
+                                    <span class="username">${usuario.toUpperCase()} ▾</span>
+                                    <span class="rank-tag" style="color: #38bdf8; border-color: #38bdf8">${rangoAgenteActual.toUpperCase()}</span>
+                                </div>
+                                <div id="dropdown-logout" class="dropdown-content">
+                                    <button class="btn-logout" onclick="cerrarSesion()">❌ Cerrar Sesión</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mdt-main">
+                        <div class="mdt-sidebar">
+                            <div class="sidebar-header">MENÚ PRINCIPAL</div>
+                            <div class="menu-item active" id="btn-panel" onclick="cambiarPestaña('panel')">📊 Panel de Control</div>
+                            <div class="menu-item" id="btn-ciudadanos" onclick="cambiarPestaña('ciudadanos')">👥 Ciudadanos</div>
+                            <div class="menu-item" id="btn-denuncias-menu" onclick="cambiarPestaña('denuncias')">📂 Inteligencia / Denuncias</div>
+                            ${esDirector ? `<div class="sidebar-header" style="margin-top:15px;">DIRECCIÓN DEL FBI</div>
+                            <div class="menu-item" id="btn-admin-rangos" onclick="cambiarPestaña('admin-rangos')">⚙️ Configuración de Rangos</div>
+                            <div class="menu-item" id="btn-admin-personal" onclick="cambiarPestaña('admin-personal')">📇 Control de Agentes</div>` : ''}
+                        </div>
+
+                        <div class="mdt-content">
+                            <div id="vista-panel">
+                                <div class="content-header">
+                                    <h1>Panel de Control</h1>
+                                    <p>Terminal operativo confidencial del Buró Federal.</p>
+                                </div>
+                                <div class="card card-full">
+                                    <h3>Perfil Federal</h3>
+                                    <hr class="card-hr">
+                                    <div style="display:flex; gap:20px; align-items:center;">
+                                        <div class="avatar-placeholder">🦅</div>
+                                        <div>
+                                            <p><strong>AGENTE ASIGNADO:</strong> ${usuario.toUpperCase()}</p>
+                                            <p><strong>RANGO EFECTIVO:</strong> ${rangoAgenteActual.toUpperCase()}</p>
+                                            <p><strong>AUTORIZACIÓN:</strong> ${esDirector ? "ACCESO TOTAL LIMITLESS" : "RESTRITO / OPERATIVO"}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="vista-ciudadanos" style="display: none;">
+                                <div class="content-header">
+                                    <h1>Registro de Ciudadanos</h1>
+                                    <p>Censo poblacional sincronizado mediante satélite.</p>
+                                </div>
+                                <div class="card card-full">
+                                    <table class="table-ciudadanos">
+                                        <thead>
+                                            <tr>
+                                                <th>NOMBRE CIUDADANO</th>
+                                                <th>ESTADO LEGAL</th>
+                                                <th>HISTORIAL</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tabla-miembros-body"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div id="vista-ficha" style="display: none;">
+                                <div class="content-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                    <h1 id="ficha-nombre-ciudadano" style="color: #fff;">PERFIL DE CIUDADANO</h1>
+                                    <button class="btn-back" onclick="cambiarPestaña('ciudadanos')">⬅ VOLVER AL CENSO</button>
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 3fr; gap: 20px; margin-bottom: 25px;">
+                                    <div class="card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                                        <div style="font-size: 64px;">👤</div>
+                                        <div id="ficha-id-ciudadano" style="color: #38bdf8; font-weight: 700; font-size: 14px; margin-top:5px;">-</div>
+                                    </div>
+                                    <div class="card" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; background: #0b111e;">
+                                        <div><label class="input-label">TELÉFONO</label><input type="text" class="mdt-input" value="559-83021"></div>
+                                        <div><label class="input-label">CUENTA BANCARIA</label><input type="text" class="mdt-input" value="US-069332"></div>
+                                        <div><label class="input-label">EMPLEO</label><input type="text" id="fbi-trabajo" class="mdt-input"></div>
+                                    </div>
+                                </div>
+                                <div class="card" style="display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(239, 68, 68, 0.2);">
+                                    <div><span style="font-size: 11px; color:#6b7280;">ESTATUS LEGAL</span><div id="ficha-estado-legal" style="font-weight:bold;">-</div></div>
+                                    <button id="btn-toggle-busqueda" class="btn-submit" style="width: auto; padding: 10px 20px;" onclick="alternarBusquedaFicha()">CAMBIAR ESTADO</button>
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                    <div class="card">
+                                        <h3>Informes de Inteligencia</h3>
+                                        <div id="contenedor-notas" class="scroller-box"></div>
+                                        <textarea id="nueva-nota-texto" placeholder="Nuevo informe..." rows="2" class="mdt-textarea"></textarea>
+                                        <button onclick="guardarNotaFbi('nota')" class="btn-submit">AÑADIR INFORME</button>
+                                    </div>
+                                    <div class="card">
+                                        <h3>Sanciones / Multas</h3>
+                                        <div id="contenedor-multas-fbi" class="scroller-box"></div>
+                                        <textarea id="nueva-multa-texto" placeholder="Cargo..." rows="2" class="mdt-textarea">[MULTA] </textarea>
+                                        <button onclick="guardarNotaFbi('multa')" class="btn-submit" style="background:#f59e0b;">EMITIR MULTA</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="vista-denuncias" style="display: none;">
+                                <div class="content-header" style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div><h1>Módulo de Denuncias</h1><p>Gestión de expedientes.</p></div>
+                                    <button class="btn-submit" style="width:auto; padding: 10px 20px; background:#10b981;" onclick="abrirModalNuevaDenuncia()">+ REDACTAR DENUNCIA</button>
+                                </div>
+                                <div class="denuncia-layout-container">
+                                    <div class="card denuncia-sidebar">
+                                        <div id="lista-denuncias-items" class="denuncia-list-scroller"></div>
+                                    </div>
+                                    <div class="card denuncia-viewer-panel" id="visor-denuncia-contenido">
+                                        <span>🦅</span><p>Seleccione un caso.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="vista-admin-rangos" style="display: none;">
+                                <div class="content-header">
+                                    <h1>Configuración de Rangos & Permisos del Sistema</h1>
+                                    <p>Control maestro y asignación de switches cibernéticos.</p>
+                                </div>
+                                <div class="card">
+                                    <h3>Gestión de Rangos</h3>
+                                    <hr class="card-hr">
+                                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                                        <input type="text" id="nuevo-rango-nombre" class="mdt-input" placeholder="Nombre del nuevo rango" style="margin-top:0;">
+                                        <button class="btn-submit" style="width:auto; margin-top:0; padding:0 20px;" onclick="crearNuevoRangoDinamico()">+ CREAR RANGO</button>
+                                    </div>
+                                    <label class="input-label">SELECCIONAR RANGO PARA EDITAR PERMISOS</label>
+                                    <select id="select-rango-maestro" class="mdt-select" onchange="cargarPermisosDeRango()">
+                                        <option value="director">Director del FBI (Acceso Total - Limitless)</option>
+                                        <option value="agente">Agente Especial</option>
+                                        <option value="oficial">Oficial de Patrulla</option>
+                                    </select>
+                                    
+                                    <h4 style="margin-top:20px; font-size:12px; color:#38bdf8;">CONFIGURACIÓN DE SWITCHES DE ACCESO</h4>
+                                    <div class="permissions-grid">
+                                        <label class="perm-checkbox-label"><input type="checkbox" id="p_ver_civ" checked> Ver ciudadanos</label>
+                                        <label class="perm-checkbox-label"><input type="checkbox" id="p_edit_civ" checked> Editar ciudadanos</label>
+                                        <label class="perm-checkbox-label"><input type="checkbox" id="p_crear_den" checked> Crear denuncias</label>
+                                        <label class="perm-checkbox-label"><input type="checkbox" id="p_elim_den" checked> Eliminar denuncias</label>
+                                        <label class="perm-checkbox-label"><input type="checkbox" id="p_ver_intel" checked> Ver inteligencia</label>
+                                        <label class="perm-checkbox-label"><input type="checkbox" id="p_gest_capt" checked> Gestionar órdenes de captura</label>
+                                        <label class="perm-checkbox-label"><input type="checkbox" id="p_gest_veh" checked> Gestionar vehículos</label>
+                                        <label class="perm-checkbox-label"><input type="checkbox" id="p_gest_arm" checked> Gestionar armas</label>
+                                        <label class="perm-checkbox-label"><input type="checkbox" id="p_ver_exp" checked> Ver expedientes</label>
+                                        <label class="perm-checkbox-label"><input type="checkbox" id="p_edit_exp" checked> Editar expedientes</label>
+                                        <label class="perm-checkbox-label"><input type="checkbox" id="p_emit_mult" checked> Emitir multas</label>
+                                        <label class="perm-checkbox-label"><input type="checkbox" id="p_gest_pers" checked> Gestionar personal</label>
+                                        <label class="perm-checkbox-label"><input type="checkbox" id="p_asc_ag" checked> Ascender agentes</label>
+                                        <label class="perm-checkbox-label"><input type="checkbox" id="p_desc_ag" checked> Descender agentes</label>
+                                        <label class="perm-checkbox-label"><input type="checkbox" id="p_aplic_sanc" checked> Aplicar sanciones</label>
+                                        <label class="perm-checkbox-label"><input type="checkbox" id="p_ver_reg" checked> Ver registros internos</label>
+                                        <label class="perm-checkbox-label"><input type="checkbox" id="p_acc_adm" checked> Acceso al panel administrativo</label>
+                                        <label class="perm-checkbox-label"><input type="checkbox" id="p_acc_tot" checked> Acceso total del sistema</label>
+                                    </div>
+                                    <button class="btn-submit" style="background:#10b981; margin-top:20px;" onclick="alert('Permisos guardados con éxito en la base criptográfica del FBI.')">GUARDAR CONFIGURACIÓN DE PERMISOS</button>
+                                </div>
+                            </div>
+
+                            <div id="vista-admin-personal" style="display: none;">
+                                <div class="content-header">
+                                    <h1>Control de Personal & Expedientes de Agentes</h1>
+                                    <p>Panel de supervisión maestro para la aplicación de disciplina y promociones.</p>
+                                </div>
+                                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                                    <div class="card">
+                                        <h3 style="color:#10b981;">📋 Procesar Ascenso / Descenso</h3>
+                                        <hr class="card-hr">
+                                        <label class="input-label">AGENTE EFECTIVO</label>
+                                        <input type="text" id="asc-agente" class="mdt-input" placeholder="Nombre del agente">
+                                        
+                                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+                                            <div>
+                                                <label class="input-label">RANGO ANTERIOR</label>
+                                                <input type="text" id="asc-rango-ant" class="mdt-input" placeholder="Rango previo">
+                                            </div>
+                                            <div>
+                                                <label class="input-label">NUEVO RANGO</label>
+                                                <input type="text" id="asc-rango-neu" class="mdt-input" placeholder="Nuevo rango aprobado">
+                                            </div>
+                                        </div>
+                                        <label class="input-label" style="margin-top:10px; display:block;">MOTIVO DE LA ACCIÓN</label>
+                                        <textarea id="asc-motivo" class="mdt-textarea" placeholder="Justificación detallada..."></textarea>
+                                        <button class="btn-submit" style="background:#10b981;" onclick="procesarAscensoAdmin()">EFECTUAR MOVIMIENTO DE PERSONAL</button>
+                                    </div>
+
+                                    <div class="card">
+                                        <h3 style="color:#ef4444;">⚖️ Emitir Sanción Disciplinaria</h3>
+                                        <hr class="card-hr">
+                                        <label class="input-label">AGENTE INFRACTOR</label>
+                                        <input type="text" id="sanc-agente" class="mdt-input" placeholder="Nombre del oficial">
+                                        
+                                        <label class="input-label" style="margin-top:10px; display:block;">TIPO DE SANCIÓN</label>
+                                        <select id="sanc-tipo" class="mdt-select">
+                                            <option value="verbal">Advertencia verbal</option>
+                                            <option value="escrita">Advertencia escrita</option>
+                                            <option value="temp">Suspensión temporal</option>
+                                            <option value="indef">Suspensión indefinida</option>
+                                            <option value="desc">Descenso de rango</option>
+                                            <option value="exp">Expulsión fulminante</option>
+                                        </select>
+
+                                        <label class="input-label" style="margin-top:10px; display:block;">MOTIVO & OBSERVACIONES</label>
+                                        <textarea id="sanc-motivo" class="mdt-textarea" placeholder="Especificar infracciones observadas..."></textarea>
+                                        
+                                        <label class="input-label" style="margin-top:10px; display:block;">URL DE EVIDENCIAS DIGITALES</label>
+                                        <input type="text" id="sanc-evidencia" class="mdt-input" placeholder="Links o capturas de pruebas">
+                                        
+                                        <button class="btn-submit" style="background:#ef4444;" onclick="procesarSancionAdmin()">EMITIR ACCIÓN DISCIPLINARIA</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div id="modal-denuncia" class="mdt-modal-wrapper" style="display:none;">
+                    <div class="denuncia-window-form">
+                        <div class="denuncia-form-header"><span>REDACTAR INFORME DE DENUNCIA</span></div>
+                        <div class="denuncia-grid-header-fields">
+                            <div class="denuncia-box-field"><label class="denuncia-mini-label">NOMBRE DE LA DENUNCIA</label><input type="text" id="denuncia-titulo" class="denuncia-clean-input" placeholder="Ej: Margarita denuncia Mecanico"></div>
+                            <div class="denuncia-box-field"><label class="denuncia-mini-label">REPORT ID</label><div class="denuncia-static-text">#AUTOMÁTICO</div></div>
+                            <div class="denuncia-box-field"><label class="denuncia-mini-label">DATE AND HOUR</label><div id="denuncia-fecha-auto" class="denuncia-static-text">-</div></div>
+                        </div>
+                        <div class="denuncia-grid-secondary-fields">
+                            <div class="denuncia-box-field"><label class="denuncia-mini-label">AGENT IN CHARGE</label><div id="denuncia-agente-auto" class="denuncia-static-text" style="color: #38bdf8; font-weight: bold;">-</div></div>
+                            <div class="denuncia-box-field"><label class="denuncia-mini-label">LOCATION / IMPLICADO</label><input type="text" id="denuncia-ciudadano" class="denuncia-clean-input" placeholder="Nombre Implicado"></div>
+                        </div>
+                        <div class="denuncia-box-field"><label class="denuncia-mini-label">📝 REPORT DESCRIPTION</label><textarea id="denuncia-descripcion" class="denuncia-textarea-clean" placeholder="Escriba los hechos principales..."></textarea></div>
+                        <div class="denuncia-grid-footer-blocks">
+                            <div class="denuncia-box-field footer-block" style="cursor:pointer;" onclick="agregarEvidenciaPrompt()"><label class="denuncia-mini-label">❞ EVIDENCES</label><div id="label-evidencias" class="denuncia-placeholder-inner-text">+ ADD EVIDENCES</div></div>
+                            <div class="denuncia-box-field footer-block" style="cursor:pointer;" onclick="agregarPersonaPrompt()"><label class="denuncia-mini-label">🗂 PEOPLE INVOLVED</label><div id="label-personas" class="denuncia-placeholder-inner-text">+ ADD PEOPLE</div></div>
+                        </div>
+                        <div class="denuncia-grid-footer-blocks">
+                            <div class="denuncia-box-field footer-block" onclick="agregarAgentePrompt()" style="cursor:pointer;"><label class="denuncia-mini-label">👮 AGENTES INVOLUCRADOS</label><div id="label-agentes" class="denuncia-placeholder-inner-text">+ AÑADIR AGENTE</div></div>
+                            <div class="denuncia-box-field footer-block" onclick="seleccionarEtiquetaPrompt()" style="cursor:pointer;"><label class="denuncia-mini-label">🏷️ ETIQUETAS</label><div id="label-etiqueta" class="denuncia-placeholder-inner-text">Selecciona una etiqueta</div></div>
+                        </div>
+                        <div style="display:flex; gap:10px; margin-top:10px; justify-content: flex-end;">
+                            <button class="btn-submit" style="background:#10b981; width: auto; padding: 10px 25px;" onclick="procesarGuardarDenuncia()">GUARDAR EXPEDIENTE</button>
+                            <button class="btn-submit" style="background:#4b5563; width: auto; padding: 10px 25px;" onclick="cerrarModalDenuncia()">CANCELAR</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ==========================================
+        // FUNCIONES ADMINISTRATIVAS EXCLUSIVAS
+        // ==========================================
+        window.crearNuevoRangoDinamico = function() {
+            const nom = document.getElementById('nuevo-rango-nombre').value.trim();
+            if(!nom) return alert("Ingrese el nombre del nuevo rango.");
+            const sel = document.getElementById('select-rango-maestro');
+            const opt = document.createElement('option');
+            opt.value = nom.toLowerCase().replace(/\s+/g, '-');
+            opt.innerText = nom;
+            sel.appendChild(opt);
+            document.getElementById('nuevo-rango-nombre').value = "";
+            alert(`Rango '${nom}' creado con éxito en los servidores de seguridad del FBI.`);
+        }
+
+        window.cargarPermisosDeRango = function() {
+            const val = document.getElementById('select-rango-maestro').value;
+            const checkboxes = document.querySelectorAll('.permissions-grid input[type="checkbox"]');
+            checkboxes.forEach(c => {
+                c.checked = (val === 'director');
+                if(val === 'director') c.disabled = true;
+                else c.disabled = false;
+            });
+        }
+
+        window.procesarAscensoAdmin = function() {
+            const ag = document.getElementById('asc-agente').value.trim();
+            const r1 = document.getElementById('asc-rango-ant').value.trim();
+            const r2 = document.getElementById('asc-rango-neu').value.trim();
+            const mot = document.getElementById('asc-motivo').value.trim();
+
+            if(!ag || !r2 || !mot) return alert("Por favor, rellene los campos del agente, nuevo rango y el motivo.");
+
+            alert(`[AUDITORÍA FBI]\nPromoción realizada por Supervisor Maestro: ${agenteActual.toUpperCase()}\nAgente: ${ag}\nCambio: ${r1 || 'Agente'} ➡️ ${r2}\nMotivo: ${mot}`);
+            document.getElementById('asc-agente').value = "";
+            document.getElementById('asc-rango-ant').value = "";
+            document.getElementById('asc-rango-neu').value = "";
+            document.getElementById('asc-motivo').value = "";
+        }
+
+        window.procesarSancionAdmin = function() {
+            const ag = document.getElementById('sanc-agente').value.trim();
+            const tipo = document.getElementById('sanc-tipo').value;
+            const mot = document.getElementById('sanc-motivo').value.trim();
+            const ev = document.getElementById('sanc-evidencia').value.trim();
+
+            if(!ag || !mot) return alert("Complete el campo del agente infractor y el motivo.");
+
+            alert(`[SANCIÓN EMITIDA]\nTipo: ${tipo.toUpperCase()}\nAgente: ${ag}\nSupervisor a cargo: ${agenteActual.toUpperCase()}\nEvidencias adjuntas: ${ev || 'Ninguna'}\nMotivo: ${mot}`);
+            document.getElementById('sanc-agente').value = "";
+            document.getElementById('sanc-motivo').value = "";
+            document.getElementById('sanc-evidencia').value = "";
+        }
+
+        // CAPTURADORES PROMPTS
+        window.agregarEvidenciaPrompt = function() {
+            let url = prompt("Introduce la URL de la evidencia:");
+            if(url && url.trim() !== "") {
+                evidenciasTemporales.push(url.trim());
+                document.getElementById('label-evidencias').innerText = `🔗 ${evidenciasTemporales.length} Archivos registrados`;
+            }
+        }
+
+        window.agregarPersonaPrompt = function() {
+            let nombre = prompt("Nombre completo del implicado:");
+            if(nombre && nombre.trim() !== "") {
+                personasTemporales.push(nombre.trim());
+                document.getElementById('label-personas').innerText = `👥 ${personasTemporales.length} Implicados`;
+            }
+        }
+
+        window.agregarAgentePrompt = function() {
+            let agente = prompt("Nombre del agente colaborador:");
+            if(agente && agente.trim() !== "") {
+                agentesTemporales.push(agente.trim());
+                document.getElementById('label-agentes').innerText = `👮 ${agentesTemporales.length} Agentes`;
+            }
+        }
+
+        window.seleccionarEtiquetaPrompt = function() {
+            let etiqueta = prompt("Clasificación del delito:");
+            if(etiqueta && etiqueta.trim() !== "") {
+                etiquetaSeleccionada = etiqueta.trim();
+                document.getElementById('label-etiqueta').innerText = `🏷️ CLASIFICACIÓN: ${etiquetaSeleccionada.toUpperCase()}`;
+            }
+        }
+
+        window.alternarServicio = function() {
+            const btn = document.getElementById('btn-servicio');
+            enServicio = !enServicio;
+            btn.innerText = enServicio ? "EN SERVICIO" : "FUERA DE SERVICIO";
+            btn.className = enServicio ? "btn-duty duty-on" : "btn-duty duty-off";
+        }
+
+        window.toggleMenuCerrar = function() {
+            const dropdown = document.getElementById('dropdown-logout');
+            if(dropdown) dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+
+        window.cerrarSesion = function() {
+            localStorage.removeItem('fbi_usuario_discord');
+            window.location.reload();
+        }
+
+        window.cambiarPestaña = async function(pestaña) {
+            const vistas = ['panel', 'ciudadanos', 'ficha', 'denuncias', 'admin-rangos', 'admin-personal'];
+            vistas.forEach(v => {
+                const el = document.getElementById(`vista-${v}`);
+                if(el) el.style.display = v === pestaña ? 'block' : 'none';
+            });
+            
+            ['panel', 'ciudadanos', 'denuncias-menu', 'admin-rangos', 'admin-personal'].forEach(id => {
+                const el = document.getElementById(`btn-${id}`);
+                if(el) el.classList.toggle('active', id.replace('-menu','') === pestaña);
+            });
+
+            if(pestaña === 'ciudadanos') await cargarCiudadanos();
+            if(pestaña === 'denuncias') await cargarLibroDenuncias();
+        }
+
+        async function cargarCiudadanos() {
+            const tbody = document.getElementById('tabla-miembros-body');
+            tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#38bdf8;">Sincronizando red...</td></tr>`;
+            try {
+                const res = await fetch(`https://discord.com/api/guilds/${DISCORD_GUILD_ID}/widget.json`);
+                const datos = await res.json();
+                let miembros = datos.members || [];
+                
+                if(miembros.length === 0) {
+                    miembros = [{username: "Sebastián García", id: "Sebastian"}, {username: "Ares", id: "Ares"}, {username: "Emanuel", id: "Emanuel"}];
+                }
+
+                tbody.innerHTML = "";
+                const buscadosGuardados = JSON.parse(localStorage.getItem('fbi_lista_buscados') || "[]");
+
+                miembros.filter(m => !m.bot).forEach(m => {
+                    const idUnico = (m.id && m.id !== "0") ? m.id : m.username;
+                    const esBuscado = buscadosGuardados.includes(idUnico);
+                    const fila = document.createElement('tr');
+                    fila.innerHTML = `
+                        <td style="color:#38bdf8; font-weight:700;">👤 ${m.username}</td>
+                        <td>${esBuscado ? '<span class="licencia-tag tag-buscado">⚠️ BUSCADO</span>' : '<span class="licencia-tag tag-residente">LIMPIO</span>'}</td>
+                        <td><button class="btn-buscar" style="background:#1e293b; color:#94a3b8; padding:5px 10px; border:1px solid #334155; border-radius:4px; cursor:pointer;" onclick="verFichaCiudadano('${m.username}', '${idUnico}', ${esBuscado})">EXPEDIENTE</button></td>
+                    `;
+                    tbody.appendChild(fila);
+                });
+            } catch (error) { 
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;">Error de conexión.</td></tr>`;
+            }
+        }
+
+        window.verFichaCiudadano = async function(username, idUnico, esBuscado) {
+            ciudadanoSeleccionado = { username, idUnico };
+            await cambiarPestaña('ficha');
+            document.getElementById('ficha-nombre-ciudadano').innerText = `EXPEDIENTE: ${username.toUpperCase()}`;
+            document.getElementById('ficha-id-ciudadano').innerText = idUnico;
+            document.getElementById('fbi-trabajo').value = ROLES_CONEXION[username.toLowerCase()] || "Desconocido / Civil";
+            actualizarUIBusqueda(esBuscado);
+            await cargarNotasCiudadano(idUnico);
+        }
+
+        function actualizarUIBusqueda(esBuscado) {
+            const el = document.getElementById('ficha-estado-legal');
+            const btn = document.getElementById('btn-toggle-busqueda');
+            if(esBuscado) {
+                el.innerHTML = '<span class="licencia-tag tag-buscado" style="background:#ef4444; color:white; padding:3px 6px; border-radius:4px;">SÍ (REQUERIDO)</span>';
+                btn.innerText = "RETIRAR ORDEN DE CAPTURA";
+                btn.style.background = "#10b981";
+            } else {
+                el.innerHTML = '<span class="licencia-tag tag-residente" style="background:#10b981; color:white; padding:3px 6px; border-radius:4px;">NO (LIMPIO)</span>';
+                btn.innerText = "EMITIR ORDEN DE BUSCA Y CAPTURA";
+                btn.style.background = "#ef4444";
+            }
+        }
+
+        window.alternarBusquedaFicha = function() {
+            let buscados = JSON.parse(localStorage.getItem('fbi_lista_buscados') || "[]");
+            const esBuscado = buscados.includes(ciudadanoSeleccionado.idUnico);
+            if(esBuscado) {
+                buscados = buscados.filter(id => id !== ciudadanoSeleccionado.idUnico);
+            } else {
+                buscados.push(ciudadanoSeleccionado.idUnico);
+            }
+            localStorage.setItem('fbi_lista_buscados', JSON.stringify(buscados));
+            actualizarUIBusqueda(!esBuscado);
+        }
+
+        async function cargarNotasCiudadano(idUnico) {
+            const contenedorNotasReal = document.getElementById('contenedor-notas');
+            const contenedorMultas = document.getElementById('contenedor-multas-fbi');
+            if(contenedorNotasReal) contenedorNotasReal.innerHTML = "";
+            if(contenedorMultas) contenedorMultas.innerHTML = "";
+            try {
+                const { data } = await supabase.from('fbi_notas').select('*').eq('usuario_discord', idUnico).order('creado_en', { ascending: false });
+                if(!data || data.length === 0) {
+                    if(contenedorNotasReal) contenedorNotasReal.innerHTML = `<p style="color:#4b5563; font-style:italic; font-size:12px;">Sin informes.</p>`;
+                    if(contenedorMultas) contenedorMultas.innerHTML = `<p style="color:#4b5563; font-style:italic; font-size:12px;">Sin multas.</p>`;
+                    return;
+                }
+                data.forEach(n => {
+                    const div = document.createElement('div');
+                    div.style.padding = "8px"; div.style.marginBottom = "5px"; div.style.background = "#06090e";
+                    if (n.contenido.startsWith("[MULTA]")) {
+                        div.innerHTML = `<p style="color:#fef08a;">${n.contenido}</p>`;
+                        if(contenedorMultas) contenedorMultas.appendChild(div);
+                    } else {
+                        div.innerHTML = `<p style="color:#e2e8f0;">${n.contenido}</p>`;
+                        if(contenedorNotasReal) contenedorNotasReal.appendChild(div);
+                    }
+                });
+            } catch (err) {}
+        }
+
+        window.guardarNotaFbi = async function(tipo) {
+            const input = document.getElementById(tipo === 'nota' ? 'nueva-nota-texto' : 'nueva-multa-texto');
+            let texto = input.value.trim();
+            if(!texto || !ciudadanoSeleccionado) return;
+            const { error } = await supabase.from('fbi_notas').insert([{ usuario_discord: ciudadanoSeleccionado.idUnico, agente: agenteActual, contenido: texto }]);
+            if(!error) { input.value = tipo === 'multa' ? '[MULTA] ' : ''; await cargarNotasCiudadano(ciudadanoSeleccionado.idUnico); }
+        }
+
+        window.abrirModalNuevaDenuncia = function() { 
+            document.getElementById('modal-denuncia').style.display = "flex"; 
+            const hoy = new Date();
+            document.getElementById('denuncia-fecha-auto').innerText = `${hoy.getDate()}/${hoy.getMonth()+1}/${hoy.getFullYear()}`;
+            document.getElementById('denuncia-agente-auto').innerText = `${agenteActual.toUpperCase()}`;
+            evidenciasTemporales = []; personasTemporales = []; agentesTemporales = []; etiquetaSeleccionada = "Ninguna";
+        }
+        
+        window.cerrarModalDenuncia = function() {
+            document.getElementById('modal-denuncia').style.display = "none";
+        }
+
+        window.procesarGuardarDenuncia = async function() {
+            const ciudadano = document.getElementById('denuncia-ciudadano').value.trim() || "No assigned location";
+            const titulo = document.getElementById('denuncia-titulo').value.trim();
+            const descripcionCuerpo = document.getElementById('denuncia-descripcion').value.trim();
+
+            if(!titulo || !descripcionCuerpo) return alert("Complete los campos requeridos.");
+
+            let descripcionFinalPlana = `${descripcionCuerpo}\n\n` +
+                `=========================================\n` +
+                `🏷️ CLASIFICACIÓN: ${etiquetaSeleccionada.toUpperCase()}\n` +
+                `👮 OFICIALES: ${agentesTemporales.join(', ') || 'Ninguno'}\n` +
+                `🗂️ IMPLICADOS: ${personasTemporales.join(', ') || 'Ninguno'}\n` +
+                `❞ EVIDENCIAS:\n${evidenciasTemporales.map(url => `- ${url}`).join('\n') || '- Sin pruebas.'}`;
+
+            const { error } = await supabase.from('denuncias').insert([{ usuario_ciudadano: ciudadano, agente: agenteActual, titulo: titulo, descripcion: descripcionFinalPlana }]);
+            if(!error) { cerrarModalDenuncia(); await cargarLibroDenuncias(); }
+        }
+
+        async function cargarLibroDenuncias() {
+            const contenedorLista = document.getElementById('lista-denuncias-items');
+            contenedorLista.innerHTML = "";
+            try {
+                const { data } = await supabase.from('denuncias').select('*').order('creado_en', { ascending: false });
+                if(!data || data.length === 0) return;
+                data.forEach(d => {
+                    const btn = document.createElement('div');
+                    btn.className = "denuncia-item-btn";
+                    btn.innerHTML = `<div style="font-size:12px; font-weight:700; color:#fff;">📁 ${d.titulo.toUpperCase()}</div>`;
+                    btn.onclick = () => {
+                        document.getElementById('visor-denuncia-contenido').innerHTML = `
+                            <h2 style="color:#38bdf8; margin-bottom:10px;">${d.titulo.toUpperCase()}</h2>
+                            <pre style="background:#040814; padding:15px; color:#e2e8f0; white-space:pre-wrap; text-align:left;">${d.descripcion}</pre>
+                        `;
+                    };
+                    contenedorLista.appendChild(btn);
+                });
+            } catch (err) {}
+        }
+    </script>
+</head>
+<body>
+</body>
+</html>
